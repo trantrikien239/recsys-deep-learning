@@ -115,7 +115,8 @@ class OrderDataset(BaseDataset):
         self.order_item_data = self.order_item_data.groupby(self.order_col)[
             self.oi_features].agg(list).reset_index()
         self.order_item_data['cnt_items'] = self.order_item_data[
-            self.oi_features[0]].apply(len)
+            self.oi_features[0]
+            ].apply(len)
         
 
     def load(self) -> None:
@@ -146,9 +147,12 @@ class OrderDataset(BaseDataset):
         df_out_ = df_merged_[self.user_col].drop_duplicates().to_frame()\
             .reset_index(drop=True)
         for feat in self.oi_features:
-            df_out_ = df_out_.merge(df_merged_.groupby(self.user_col)[feat].agg(
-                lambda x: list_concat(x, sep=0)
-                ).to_frame(), on=self.user_col)
+            df_out_ = df_out_.merge(
+                df_merged_.groupby(self.user_col)[feat].agg(
+                    lambda x: list_concat(x, sep=self.oi_features_info[feat]['max'] + 1)
+                    ).to_frame(),
+                    on=self.user_col
+                )
         df_out_['cnt_items'] = df_out_[self.oi_features[0]].apply(len)
         return df_out_
     
