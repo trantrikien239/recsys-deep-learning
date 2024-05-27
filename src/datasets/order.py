@@ -149,9 +149,8 @@ class OrderDataset(BaseDataset):
         return df_out_
     
 class NextItemDataset(TorchDataset):
-    def __init__(self, df_order_item_users, item_id_range, 
-                 max_seq_len=1024):
-        self.df_order_item_users = df_order_item_users
+    def __init__(self, df_order_item_users, item_id_range, max_seq_len=1024):
+        self.df_order_item_users = df_order_item_users.reset_index(drop=True)
         self.item_id_range = item_id_range
         self.max_seq_len = max_seq_len
         
@@ -159,7 +158,7 @@ class NextItemDataset(TorchDataset):
         return len(self.df_order_item_users)
     
     def __getitem__(self, idx):
-        seq_ = self.df_order_item_users.iloc[idx, 'product_id']
+        seq_ = self.df_order_item_users.loc[idx, 'product_id']
         if len(seq_) > self.max_seq_len:
             seq_ = seq_[:self.max_seq_len]
         return seq_
