@@ -96,19 +96,23 @@ class OrderDataset(BaseDataset):
             raise ValueError("Only csv and parquet files are supported, "
                              f"got {self.order_item_file} instead.")
         
-        self.item_id_range = (self.order_item_data[self.item_col].min(),
-                                self.order_item_data[self.item_col].max())
-        self.item_id_nunque = self.order_item_data[self.item_col].nunique()
-
+        self.oi_features =  [self.item_col]
+        if features:
+            self.oi_features = self.oi_features + features
+        self.oi_features_info = dict()
+        for feat in self.oi_features:
+            self.oi_features_info[feat] = {}
+            self.oi_features_info[feat]['min'] = int(self.order_item_data[feat].min())
+            self.oi_features_info[feat]['max'] = int(self.order_item_data[feat].max())
+            self.oi_features_info[feat]['nunique'] = self.order_item_data[feat].nunique()
+        
+        self.order_item_data[self.item_col] = self.order_item_data[self.item_col].astype(int)
+        
         self.order_item_data.sort_values(
             [self.order_col, item_sort_by], inplace=True
             )
         
-        self.oi_features =  [self.item_col]
-        if features:
-            self.oi_features = self.oi_features + features
-        
-        self.order_item_data = self.order_item_data.groupby('order_id')[
+        self.order_item_data = self.order_item_data.groupby(self.order_col)[
             self.oi_features].agg(list).reset_index()
         self.order_item_data['cnt_items'] = self.order_item_data[
             self.oi_features[0]].apply(len)
